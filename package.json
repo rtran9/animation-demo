@@ -6,10 +6,10 @@
   },
   "dependencies": {
     "@turf/turf": "^4.7.3",
-    "deck.gl": "^4.1.0",
-    "luma.gl": "^4.0.1",
-    "react": "^15.4.1",
-    "react-dom": "^15.4.1",
+    "deck.gl": "^5.3.1",
+    "luma.gl": "^5.3.0",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1",
     "react-map-gl": "^3.3.0-alpha.4"
   },
   "devDependencies": {
