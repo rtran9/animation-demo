@@ -2,21 +2,9 @@ import DeckGL, {ArcLayer, CompositeLayer, ScatterplotLayer} from 'deck.gl';
 
 export default class TaxiLayer extends CompositeLayer {
 	renderLayers() {
+		const timeOfDay = Date.now();
+
     return [
-      new ScatterplotLayer({
-        id: `${this.props.id}-pickup`,
-        data: this.props.data,
-        getPosition: this.props.getPickupLocation,
-        getColor: d => this.props.pickupColor,
-        radiusScale: 40
-      }),
-      new ScatterplotLayer({
-        id: `${this.props.id}-dropoff`,
-        data: this.props.data,
-        getPosition: this.props.getDropoffLocation,
-        getColor: d => this.props.dropoffColor,
-        radiusScale: 40
-      }),
 			new ArcLayer({
         id: `${this.props.id}-arc`,
         data: this.props.data,

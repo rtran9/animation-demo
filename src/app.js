@@ -61,6 +61,7 @@ export default class App extends Component {
 
   render() {
     const {viewport} = this.state;
+    const data = taxiData.slice(0, 100); //reduce size for testing
 
     return (
       <div>
@@ -69,7 +70,7 @@ export default class App extends Component {
           onViewportChange={this._onViewportChange}
           mapboxApiAccessToken={MAPBOX_TOKEN}>
 
-          <DeckGLOverlay viewport={viewport} data={taxiData} />
+          <DeckGLOverlay viewport={viewport} data={data} />
 
         </MapGL>
       </div>
