@@ -61,7 +61,8 @@ export default class App extends Component {
 
   render() {
     const {viewport} = this.state;
-    const data = taxiData.slice(0, 100); //reduce size for testing
+    const data = taxiData;
+    // const data = taxiData.slice(0, 100); //reduce size for testing
 
     return (
       <div>

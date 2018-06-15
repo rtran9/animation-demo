@@ -15,6 +15,7 @@ uniform float currentTime;
 
 varying vec4 vColor;
 varying float vAlpha;
+varying vec2 vTextureCoord;
 
 float paraboloid(vec2 source, vec2 target, float ratio) {
 
@@ -57,6 +58,8 @@ void main(void) {
   vec2 source = project_position(instancePositions.xy);
   vec2 target = project_position(instancePositions.zw);
 
+  vTextureCoord = source;
+  
   float segmentIndex = positions.x;
   float segmentRatio = getSegmentRatio(segmentIndex);
   // if it's the first point, use next - current as direction

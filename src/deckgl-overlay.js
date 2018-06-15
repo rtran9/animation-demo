@@ -35,7 +35,10 @@ export default class DeckGLOverlay extends Component {
         getTargetPosition: d => [d.dropoff_longitude, d.dropoff_latitude],
         getSourceColor: d => [0, 128, 255],
         getTargetColor: d => [255, 0, 128],
-        getTime: d => 10,
+        getTime: d => {
+          const pickupDate = new Date(d.pickup_datetime);
+          return pickupDate.getUTCHours() + pickupDate.getMinutes() / 60;
+        },
         currentTime: (Date.now() / 1000) % 24,
         strokeWidth: 2
       })
