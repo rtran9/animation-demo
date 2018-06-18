@@ -17,7 +17,7 @@ export default class App extends Component {
       viewport: {
         width: window.innerWidth,
         height: window.innerHeight,
-        longitude: -74,
+        longitude: -73.9,
         latitude: 40.7,
         zoom: 11,
         pitch: 30,
