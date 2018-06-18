@@ -24,6 +24,7 @@ export default class DeckGLOverlay extends Component {
         getColor: d => [255, 0, 128],
         radiusScale: 40
       }),
+      // hint arc line
       new ArcLayer({
         id: 'arcs',
         data: this.props.data,
@@ -37,6 +38,7 @@ export default class DeckGLOverlay extends Component {
         getTargetColor: d => [255, 0, 128],
         strokeWidth: 1
       }),
+      // arc animiation layer
       new TripsArcLayer({
         id: 'taxi-trips',
         data: this.props.data,
@@ -48,12 +50,8 @@ export default class DeckGLOverlay extends Component {
         getTargetPosition: d => [d.dropoff_longitude, d.dropoff_latitude],
         getSourceColor: d => [0, 128, 255],
         getTargetColor: d => [255, 0, 128],
-        getTime: d => {
-          const pickupDate = new Date(d.pickup_datetime);
-          return pickupDate.getUTCHours() + pickupDate.getMinutes() / 60;
-        },
         currentTime: (Date.now() / 1000) % 6.0,
-        strokeWidth: 10
+        strokeWidth: 30
       })
     ];
 

@@ -46,8 +46,11 @@ float getSegmentRatio(float index) {
 }
 
 vec3 getPos(vec2 source, vec2 target, float segmentRatio) {
-  float vertex_height = paraboloid(source, target, segmentRatio);
+  // movement along arc
   vAlpha = currentTime / 6.0;
+
+  // movement z axis
+  float vertex_height = paraboloid(source, target, (0.5 - abs(vAlpha - 0.5)) * segmentRatio);
 
   return vec3(
     mix(source, target, vAlpha),
@@ -58,8 +61,6 @@ vec3 getPos(vec2 source, vec2 target, float segmentRatio) {
 void main(void) {
   vec2 source = project_position(instancePositions.xy);
   vec2 target = project_position(instancePositions.zw);
-
-  vTextureCoord = source;
 
   float segmentIndex = positions.x;
   float segmentRatio = getSegmentRatio(segmentIndex);
@@ -74,8 +75,8 @@ void main(void) {
   vec4 next = project_to_clipspace(vec4(nextPos, 1.0));
 
   // extrude, change width
-  vec2 offset = 2.0 * getExtrusionOffset((next.xy - curr.xy) * indexDir, positions.y);
+  vec2 offset = getExtrusionOffset((next.xy - curr.xy) * indexDir, positions.y);
   gl_Position = curr + vec4(offset, 0.0, 0.0);
-
+  vTextureCoord = source;
 }
 `;

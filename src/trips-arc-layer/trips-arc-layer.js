@@ -1,9 +1,11 @@
 import DeckGL, {ArcLayer} from 'deck.gl';
 import {GL, AnimationLoop, loadTextures, Cube, setParameters} from 'luma.gl';
+import {Matrix4} from 'math.gl';
 
 import vertexShader from './trips-arc-layer-vertex.glsl';
 import fragmentShader from './trips-arc-layer-fragment.glsl';
 
+// https://github.com/uber/luma.gl/blob/5.3-release/examples/lessons/05/app.js
 const VERTEX_SHADER = `\
 attribute vec3 positions;
 attribute vec2 texCoords;
@@ -22,13 +24,11 @@ const FRAGMENT_SHADER = `\
 precision highp float;
 #endif
 
-varying vec4 vColor;
-varying float vAlpha;
 uniform sampler2D uSampler;
 varying vec2 vTextureCoord;
 
 void main(void) {
-  gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+  gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x, vTextureCoord.y));
 }
 `;
 
@@ -43,6 +43,8 @@ export default class TripsArcLayer extends ArcLayer {
 
     super.updateState(...arguments);
 
+    // load the texture
+    // idea is to import any image, e.g. bike, airplane
 		loadTextures(gl, {
 			urls: ['nehe.gif']
 		}).then(textures => {
@@ -51,14 +53,6 @@ export default class TripsArcLayer extends ArcLayer {
 				uSampler: textures[0]
 			})
 		})
-    // this.state.model.setUniforms({
-    //   currentTime: props.currentTime,
-		// 	uSampler: loadTextures(gl, {
-		//
-		// 	}).then(textures => {
-		// 		return textures[0]
-		// 	})
-    // });
   }
 
 	getShaders() {
