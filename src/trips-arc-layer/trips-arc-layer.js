@@ -36,10 +36,6 @@ export default class TripsArcLayer extends ArcLayer {
 	initializeState() {
     super.initializeState(...arguments);
 		const {gl} = this.context;
-
-    this.state.attributeManager.addInstanced({
-      instanceTimes: {size: 1, accessor: 'getTime'}
-    });
   }
 
 	updateState({props}) {

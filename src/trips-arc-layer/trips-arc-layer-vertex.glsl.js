@@ -18,7 +18,7 @@ varying float vAlpha;
 varying vec2 vTextureCoord;
 
 float paraboloid(vec2 source, vec2 target, float ratio) {
-
+  // shape of arc
   vec2 x = mix(source, target, ratio);
   vec2 center = mix(source, target, 0.5);
 
@@ -47,9 +47,10 @@ float getSegmentRatio(float index) {
 
 vec3 getPos(vec2 source, vec2 target, float segmentRatio) {
   float vertex_height = paraboloid(source, target, segmentRatio);
+  vAlpha = currentTime / 6.0;
 
   return vec3(
-    mix(source, target, segmentRatio),
+    mix(source, target, vAlpha),
     sqrt(max(0.0, vertex_height))
   );
 }
@@ -59,7 +60,7 @@ void main(void) {
   vec2 target = project_position(instancePositions.zw);
 
   vTextureCoord = source;
-  
+
   float segmentIndex = positions.x;
   float segmentRatio = getSegmentRatio(segmentIndex);
   // if it's the first point, use next - current as direction
@@ -72,15 +73,9 @@ void main(void) {
   vec4 curr = project_to_clipspace(vec4(currPos, 1.0));
   vec4 next = project_to_clipspace(vec4(nextPos, 1.0));
 
-  // extrude
-  vec2 offset = getExtrusionOffset((next.xy - curr.xy) * indexDir, positions.y);
+  // extrude, change width
+  vec2 offset = 2.0 * getExtrusionOffset((next.xy - curr.xy) * indexDir, positions.y);
   gl_Position = curr + vec4(offset, 0.0, 0.0);
 
-  vec4 color = mix(instanceSourceColors, instanceTargetColors, segmentRatio) / 255.;
-  vColor = vec4(color.rgb, color.a * opacity);
-	vAlpha = 1.0 - abs(instanceTimes - currentTime);
-
-  // Set color to be rendered to picking fbo (also used to check for selection highlight).
-  picking_setPickingColor(instancePickingColors);
 }
 `;

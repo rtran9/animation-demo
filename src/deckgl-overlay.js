@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import DeckGL, {ScatterplotLayer} from 'deck.gl';
+import DeckGL, {ArcLayer, ScatterplotLayer} from 'deck.gl';
 import TripsArcLayer from './trips-arc-layer';
 
 export default class DeckGLOverlay extends Component {
@@ -24,6 +24,19 @@ export default class DeckGLOverlay extends Component {
         getColor: d => [255, 0, 128],
         radiusScale: 40
       }),
+      new ArcLayer({
+        id: 'arcs',
+        data: this.props.data,
+        pickupColor: [0, 128, 255],
+        dropoffColor: [255, 0, 128],
+        getPickupLocation: d => [d.pickup_longitude, d.pickup_latitude],
+        getDropoffLocation: d => [d.dropoff_longitude, d.dropoff_latitude],
+        getSourcePosition: d => [d.pickup_longitude, d.pickup_latitude],
+        getTargetPosition: d => [d.dropoff_longitude, d.dropoff_latitude],
+        getSourceColor: d => [0, 128, 255],
+        getTargetColor: d => [255, 0, 128],
+        strokeWidth: 1
+      }),
       new TripsArcLayer({
         id: 'taxi-trips',
         data: this.props.data,
@@ -39,8 +52,8 @@ export default class DeckGLOverlay extends Component {
           const pickupDate = new Date(d.pickup_datetime);
           return pickupDate.getUTCHours() + pickupDate.getMinutes() / 60;
         },
-        currentTime: (Date.now() / 1000) % 24,
-        strokeWidth: 2
+        currentTime: (Date.now() / 1000) % 6.0,
+        strokeWidth: 10
       })
     ];
 
