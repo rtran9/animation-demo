@@ -27,7 +27,7 @@ float paraboloid(vec2 source, vec2 target, float ratio) {
 }
 
 float getSegmentRatio(float index) {
-  return smoothstep(0.0, 1.0, index / (numSegments - 1.0));
+  return smoothstep(0.0, 1.0, index / (50.0 - 1.0));
 }
 
 vec3 getPos(vec2 source, vec2 target, float segmentRatio) {
@@ -39,12 +39,42 @@ vec3 getPos(vec2 source, vec2 target, float segmentRatio) {
   );
 }
 
+mat4 rotationMatrix(vec3 axis, float angle) {
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+
+    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
+
 void main(void) {
 	vec2 source = project_position(instancePositions.xy);
   vec2 target = project_position(instancePositions.zw);
 
-	vec3 currPos = getPos(source, target, 0.5);
+	// float segmentRatio = getSegmentRatio(25.0);
+	// float indexDir = mix(-1.0, 1.0, step(25.0, 0.0));
+	// float nextSegmentRatio = getSegmentRatio(25.0 + indexDir);
+
+	vec3 currPos = getPos(source, target, 0.499);
+	vec3 nextPos = getPos(source, target, 0.501);
   vec4 curr = project_to_clipspace(vec4(currPos, 1.0));
+	vec4 next = project_to_clipspace(vec4(nextPos, 1.0));
+
+	vec3 line_clipspace = normalize((next.xyz - curr.xyz));
+	// normalized direction of the line
+
+	vec2 dir_screenspace = normalize((next.xy - curr.xy) * 1.0 * project_uViewportSize);
+
+	// mat4 rotate = mat4(
+	// 	vec4(dir_screenspace.x, 0, 0, 0),
+	// 	vec4(0, dir_screenspace.y, 0, 0),
+	// 	vec4(0, 0, 1.0, 0),
+	// 	vec4(0, 0, 0, 1.0)
+	// );
 
 	mat4 m1 = mat4(
 		vec4(1.0, 0, 0, 0),
@@ -53,7 +83,16 @@ void main(void) {
 		curr
 	);
 
-	gl_Position = m1 * uSMatrix * vec4(positions, 1.0);
+	float x = line_clipspace.x;
+	float y = line_clipspace.y;
+	float z = line_clipspace.z;
+
+	mat4 rotateX = rotationMatrix(vec3(1.0, 0, 0), atan(sqrt(pow(y, 2.0) + pow(z, 2.0)), x));
+	mat4 rotateY = rotationMatrix(vec3(0, 1.0, 0), atan(sqrt(pow(z, 2.0) + pow(x, 2.0)), y));
+	mat4 rotateZ = rotationMatrix(vec3(0, 0, 1.0), atan(sqrt(pow(x, 2.0) + pow(y, 2.0)), z));
+	mat4 rotate = rotateX * rotateY * rotateZ;
+
+	gl_Position = m1 * rotate * uSMatrix * vec4(positions, 1.0);
   vColor = colors;
 }
 `;

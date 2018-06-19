@@ -186,7 +186,7 @@ export default class ModifiedArcLayer extends Layer {
                 1, 0, 1, 1,
                 1, 0, 1, 1,
                 1, 0, 1, 1,
-                
+
                 0, 0, 1, 1,
                 0, 0, 1, 1,
                 0, 0, 1, 1,
@@ -211,7 +211,7 @@ export default class ModifiedArcLayer extends Layer {
 
     const projection = new Matrix4().perspective({aspect: 2});
     const view = new Matrix4().lookAt({eye: [0, 0, 0]});
-    const scaler = new Matrix4().scale([0.05, 0.05, 0.05]);
+    const scaler = new Matrix4().lookAt({eye: [0, 0, 0]}).scale([0.05, 0.05, 0.05]);
 
     model.setUniforms({
       numSegments: NUM_SEGMENTS,
