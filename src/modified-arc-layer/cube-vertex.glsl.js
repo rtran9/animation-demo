@@ -9,6 +9,8 @@ attribute float instanceWidths;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
+uniform mat4 uSMatrix;
+
 uniform float numSegments;
 uniform float opacity;
 
@@ -44,13 +46,6 @@ void main(void) {
 	vec3 currPos = getPos(source, target, 0.5);
   vec4 curr = project_to_clipspace(vec4(currPos, 1.0));
 
-	mat4 scale = mat4(
-		vec4(0.05, 0, 0, 0),
-		vec4(0, 0.05, 0, 0),
-		vec4(0, 0, 0.05, 0),
-		vec4(0, 0, 0, 1.0)
-	);
-
 	mat4 m1 = mat4(
 		vec4(1.0, 0, 0, 0),
 		vec4(0, 1.0, 0, 0),
@@ -58,7 +53,7 @@ void main(void) {
 		curr
 	);
 
-	gl_Position = m1 * scale * vec4(positions, 1.0);
+	gl_Position = m1 * uSMatrix * vec4(positions, 1.0);
   vColor = colors;
 }
 `;
