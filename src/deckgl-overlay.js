@@ -42,6 +42,7 @@ export default class DeckGLOverlay extends Component {
         getSourceColor: d => [0, 128, 255],
         getTargetColor: d => [255, 0, 128],
         getStrokeWidth: 4,
+        currentTime: (Date.now() / 1000) % 10.0
       })
       // // arc animiation layer
       // new TripsArcLayer({

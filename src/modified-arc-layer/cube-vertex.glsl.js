@@ -13,6 +13,7 @@ uniform mat4 uSMatrix;
 
 uniform float numSegments;
 uniform float opacity;
+uniform float currentTime;
 
 varying vec4 vColor;
 
@@ -59,8 +60,10 @@ void main(void) {
 	// float indexDir = mix(-1.0, 1.0, step(25.0, 0.0));
 	// float nextSegmentRatio = getSegmentRatio(25.0 + indexDir);
 
-	vec3 currPos = getPos(source, target, 0.499);
-	vec3 nextPos = getPos(source, target, 0.501);
+	float vAlpha = currentTime / 10.0;
+
+	vec3 currPos = getPos(source, target, vAlpha + 0.001);
+	vec3 nextPos = getPos(source, target, vAlpha - 0.001);
   vec4 curr = project_to_clipspace(vec4(currPos, 1.0));
 	vec4 next = project_to_clipspace(vec4(nextPos, 1.0));
 
@@ -92,7 +95,7 @@ void main(void) {
 	mat4 rotateZ = rotationMatrix(vec3(0, 0, 1.0), atan(sqrt(pow(x, 2.0) + pow(y, 2.0)), z));
 	mat4 rotate = rotateX * rotateY * rotateZ;
 
-	gl_Position = m1 * rotate * uSMatrix * vec4(positions, 1.0);
+	gl_Position = m1 * rotate * uMVMatrix * uSMatrix * vec4(positions, 1.0);
   vColor = colors;
 }
 `;

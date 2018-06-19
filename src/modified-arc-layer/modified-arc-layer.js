@@ -102,8 +102,15 @@ export default class ModifiedArcLayer extends Layer {
       if (this.state.model) {
         this.state.model.delete();
       }
-      this.setState({model: this._getModel(gl)});
+      this.setState({
+        model: this._getModel(gl)
+      });
     }
+
+    this.state.model.setUniforms({
+			currentTime: props.currentTime
+		});
+
     this.updateAttribute({props, oldProps, changeFlags});
   }
 
@@ -210,13 +217,13 @@ export default class ModifiedArcLayer extends Layer {
     );
 
     const projection = new Matrix4().perspective({aspect: 2});
-    const view = new Matrix4().lookAt({eye: [0, 0, 0]});
-    const scaler = new Matrix4().lookAt({eye: [0, 0, 0]}).scale([0.05, 0.05, 0.05]);
+    const view = new Matrix4();
+    const scaler = new Matrix4().scale([0.02, 0.02, 0.02]);
 
     model.setUniforms({
       numSegments: NUM_SEGMENTS,
       uPMatrix: projection,
-      uMVMatrix: view.clone().translate([1.5, 0, -8]),
+      uMVMatrix: view,
       uSMatrix: scaler
     });
 
