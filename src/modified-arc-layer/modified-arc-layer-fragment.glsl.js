@@ -1,5 +1,5 @@
 export default `\
-#define SHADER_NAME trips-arc-layer-fragment-shader
+#define SHADER_NAME modified-arc-layer-fragment-shader
 
 #ifdef GL_ES
 precision highp float;

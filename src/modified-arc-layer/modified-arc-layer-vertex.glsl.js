@@ -1,5 +1,5 @@
 export default `\
-#define SHADER_NAME arc-layer-vertex-shader
+#define SHADER_NAME modified-arc-layer-vertex-shader
 
 attribute vec3 positions;
 attribute vec4 instanceSourceColors;
@@ -51,11 +51,9 @@ vec3 getPos(vec2 source, vec2 target, float segmentRatio) {
 }
 
 void main(void) {
-  // Projects positions (coordinates) to worldspace coordinates
   vec2 source = project_position(instancePositions.xy);
   vec2 target = project_position(instancePositions.zw);
 
-  // Create arc in segements
   float segmentIndex = positions.x;
   float segmentRatio = getSegmentRatio(segmentIndex);
   // if it's the first point, use next - current as direction
@@ -65,7 +63,6 @@ void main(void) {
 
   vec3 currPos = getPos(source, target, segmentRatio);
   vec3 nextPos = getPos(source, target, nextSegmentRatio);
-
   vec4 curr = project_to_clipspace(vec4(currPos, 1.0));
   vec4 next = project_to_clipspace(vec4(nextPos, 1.0));
 
@@ -76,5 +73,7 @@ void main(void) {
   vec4 color = mix(instanceSourceColors, instanceTargetColors, segmentRatio) / 255.;
   vColor = vec4(color.rgb, color.a * opacity);
 
+  // Set color to be rendered to picking fbo (also used to check for selection highlight).
+  picking_setPickingColor(instancePickingColors);
 }
 `;

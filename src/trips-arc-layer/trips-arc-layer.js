@@ -28,14 +28,17 @@ uniform sampler2D uSampler;
 varying vec2 vTextureCoord;
 
 void main(void) {
-  gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x, vTextureCoord.y));
+  gl_FragColor = texture2D(uSampler, vTextureCoord);
 }
 `;
 
 export default class TripsArcLayer extends ArcLayer {
 	initializeState() {
     super.initializeState(...arguments);
-		const {gl} = this.context;
+
+    this.setState({
+      model: this.getModel(gl)
+    });
   }
 
 	updateState({props}) {
@@ -45,23 +48,36 @@ export default class TripsArcLayer extends ArcLayer {
 
     // load the texture
     // idea is to import any image, e.g. bike, airplane
-		loadTextures(gl, {
-			urls: ['nehe.gif']
-		}).then(textures => {
-			this.state.model.setUniforms({
-				currentTime: props.currentTime,
-				uSampler: textures[0]
-			})
-		})
+		// loadTextures(gl, {
+		// 	urls: ['bike-3-256.gif']
+		// }).then(textures => {
+		// 	this.state.model.setUniforms({
+		// 		currentTime: props.currentTime,
+		// 		uSampler: textures[0]
+		// 	})
+		// })
   }
 
 	getShaders() {
 		return {
       ...super.getShaders(),
 			vs: vertexShader,
-      fs: FRAGMENT_SHADER
+      fs: fragmentShader
     };
   }
+
+  getModel(gl) {
+   const shaders = assembleShaders(gl, this.getShaders());
+
+   return new Model({
+     gl,
+     id: this.props.id,
+     vs: shaders.vs,
+     fs: shaders.fs,
+     geometry: new CubeGeometry(),
+     isInstanced: true
+   });
+ }
 }
 
 TripsArcLayer.layerName = 'TripsArcLayer';
