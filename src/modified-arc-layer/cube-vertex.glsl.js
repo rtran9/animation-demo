@@ -86,16 +86,25 @@ void main(void) {
 		curr
 	);
 
+  vec3 xAxis = vec3(1.0, 0, 0);
+  vec3 yAxis = vec3(0, 1.0, 0);
+  vec3 zAxis = vec3(0, 0, 1.0);
+
 	float x = line_clipspace.x;
 	float y = line_clipspace.y;
 	float z = line_clipspace.z;
 
-	mat4 rotateX = rotationMatrix(vec3(1.0, 0, 0), atan(sqrt(pow(y, 2.0) + pow(z, 2.0)), x));
-	mat4 rotateY = rotationMatrix(vec3(0, 1.0, 0), atan(sqrt(pow(z, 2.0) + pow(x, 2.0)), y));
-	mat4 rotateZ = rotationMatrix(vec3(0, 0, 1.0), atan(sqrt(pow(x, 2.0) + pow(y, 2.0)), z));
-	mat4 rotate = rotateX * rotateY * rotateZ;
+  float dX = -atan(sqrt(pow(y, 2.0) + pow(z, 2.0)), x);
+  float dY = -atan(sqrt(pow(z, 2.0) + pow(x, 2.0)), y);
+  float dZ = -atan(sqrt(pow(x, 2.0) + pow(y, 2.0)), z);
 
-	gl_Position = m1 * rotate * uMVMatrix * uSMatrix * vec4(positions, 1.0);
-  vColor = colors;
+	mat4 rotateX = rotationMatrix(xAxis, dX);
+	mat4 rotateY = rotationMatrix(yAxis, dY);
+	mat4 rotateZ = rotationMatrix(zAxis, dZ);
+	mat4 rotate = rotateZ * rotateY * rotateX;
+
+	vColor = colors;
+	gl_Position = m1 * rotate * uSMatrix * vec4(positions, 1.0);
+
 }
 `;

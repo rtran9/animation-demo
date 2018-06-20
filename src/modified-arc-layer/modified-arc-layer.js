@@ -1,5 +1,5 @@
 import {COORDINATE_SYSTEM, Layer} from 'deck.gl';
-import {GL, Model, Geometry, fp64} from 'luma.gl';
+import {GL, Model, Geometry, fp64, setParameters} from 'luma.gl';
 import {Matrix4} from 'math.gl';
 
 const {fp64LowPart} = fp64;
@@ -218,7 +218,8 @@ export default class ModifiedArcLayer extends Layer {
 
     const projection = new Matrix4().perspective({aspect: 2});
     const view = new Matrix4();
-    const scaler = new Matrix4().scale([0.02, 0.02, 0.02]);
+    const scaleFactor = 0.05;
+    const scaler = new Matrix4().scale([scaleFactor, scaleFactor, scaleFactor]);
 
     model.setUniforms({
       numSegments: NUM_SEGMENTS,
