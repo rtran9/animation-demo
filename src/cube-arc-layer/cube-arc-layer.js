@@ -5,8 +5,6 @@ import {Matrix4} from 'math.gl';
 import vs from './cube-arc-layer-vertex.glsl';
 import fs from './cube-arc-layer-fragment.glsl';
 
-const DEFAULT_COLOR = [0, 0, 0, 255];
-
 const defaultProps = {
   getSourcePosition: x => x.sourcePosition,
   getTargetPosition: x => x.targetPosition
