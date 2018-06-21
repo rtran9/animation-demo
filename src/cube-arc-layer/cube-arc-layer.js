@@ -1,9 +1,9 @@
 import {COORDINATE_SYSTEM, Layer} from 'deck.gl';
-import {GL, Model, Geometry} from 'luma.gl';
+import {Geometry, GL, Model} from 'luma.gl';
 import {Matrix4} from 'math.gl';
 
-import vs from './cube-vertex.glsl';
-import fs from './cube-fragment.glsl';
+import vs from './cube-arc-layer-vertex.glsl';
+import fs from './cube-arc-layer-fragment.glsl';
 
 const DEFAULT_COLOR = [0, 0, 0, 255];
 
