@@ -1,6 +1,7 @@
 export default `\
 attribute vec4 colors;
 attribute vec3 positions;
+attribute vec2 texCoords;
 attribute vec4 instanceSourceColors;
 attribute vec4 instanceTargetColors;
 attribute vec4 instancePositions;
@@ -16,6 +17,8 @@ uniform float opacity;
 uniform float currentTime;
 
 varying vec4 vColor;
+varying vec2 vTextureCoord;
+varying float isVisible;
 
 float paraboloid(vec2 source, vec2 target, float ratio) {
 
@@ -75,5 +78,6 @@ void main(void) {
 
 	gl_Position = translationMatrix * orientationMatrix * uSMatrix * vec4(positions, 1.0);
   vColor = colors;
+  vTextureCoord = texCoords;
 }
 `;
