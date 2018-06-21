@@ -9,10 +9,7 @@ const DEFAULT_COLOR = [0, 0, 0, 255];
 
 const defaultProps = {
   getSourcePosition: x => x.sourcePosition,
-  getTargetPosition: x => x.targetPosition,
-  getSourceColor: x => x.color || DEFAULT_COLOR,
-  getTargetColor: x => x.color || DEFAULT_COLOR,
-  getStrokeWidth: 1
+  getTargetPosition: x => x.targetPosition
 };
 
 export default class CubeArcLayer extends Layer {
@@ -45,26 +42,6 @@ export default class CubeArcLayer extends Layer {
         transition: true,
         accessor: ['getSourcePosition', 'getTargetPosition'],
         update: this.calculateInstancePositions
-      },
-      instanceSourceColors: {
-        size: 4,
-        type: GL.UNSIGNED_BYTE,
-        transition: true,
-        accessor: 'getSourceColor',
-        defaultValue: DEFAULT_COLOR
-      },
-      instanceTargetColors: {
-        size: 4,
-        type: GL.UNSIGNED_BYTE,
-        transition: true,
-        accessor: 'getTargetColor',
-        defaultValue: DEFAULT_COLOR
-      },
-      instanceWidths: {
-        size: 1,
-        transition: true,
-        accessor: 'getStrokeWidth',
-        defaultValue: 1
       }
     });
 
@@ -87,18 +64,6 @@ export default class CubeArcLayer extends Layer {
   updateAttribute({props, oldProps, changeFlags}) {
     const attributeManager = this.getAttributeManager();
     attributeManager.invalidateAll();
-
-    if (props.fp64 && props.coordinateSystem === COORDINATE_SYSTEM.LNGLAT) {
-      attributeManager.addInstanced({
-        instancePositions64Low: {
-          size: 4,
-          accessor: ['getSourcePosition', 'getTargetPosition'],
-          update: this.calculateInstancePositions64Low
-        }
-      });
-    } else {
-      attributeManager.remove(['instancePositions64Low']);
-    }
   }
 
   updateState({props, oldProps, changeFlags}) {
