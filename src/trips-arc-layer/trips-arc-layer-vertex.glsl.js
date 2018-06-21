@@ -1,17 +1,20 @@
 export default `\
-#define SHADER_NAME arc-layer-vertex-shader
+#define SHADER_NAME trips-arc-layer-vertex-shader
 
+attribute vec4 colors;
 attribute vec3 positions;
+attribute vec2 texCoords;
 attribute vec4 instanceSourceColors;
 attribute vec4 instanceTargetColors;
 attribute vec4 instancePositions;
 attribute vec3 instancePickingColors;
 attribute float instanceWidths;
 
-uniform float numSegments;
-uniform float opacity;
+uniform mat4 uSMatrix;
+uniform float currentTime;
 
 varying vec4 vColor;
+varying vec2 vTextureCoord;
 
 float paraboloid(vec2 source, vec2 target, float ratio) {
 
@@ -23,22 +26,8 @@ float paraboloid(vec2 source, vec2 target, float ratio) {
   return (dSourceCenter + dXCenter) * (dSourceCenter - dXCenter);
 }
 
-// offset vector by strokeWidth pixels
-// offset_direction is -1 (left) or 1 (right)
-vec2 getExtrusionOffset(vec2 line_clipspace, float offset_direction) {
-  // normalized direction of the line
-  vec2 dir_screenspace = normalize(line_clipspace * project_uViewportSize);
-  // rotate by 90 degrees
-  dir_screenspace = vec2(-dir_screenspace.y, dir_screenspace.x);
-
-  vec2 offset_screenspace = dir_screenspace * offset_direction * instanceWidths / 2.0;
-  vec2 offset_clipspace = project_pixel_to_clipspace(offset_screenspace).xy;
-
-  return offset_clipspace;
-}
-
 float getSegmentRatio(float index) {
-  return smoothstep(0.0, 1.0, index / (numSegments - 1.0));
+  return smoothstep(0.1, 0.9, index / 4.0);
 }
 
 vec3 getPos(vec2 source, vec2 target, float segmentRatio) {
@@ -51,30 +40,41 @@ vec3 getPos(vec2 source, vec2 target, float segmentRatio) {
 }
 
 void main(void) {
-  // Projects positions (coordinates) to worldspace coordinates
-  vec2 source = project_position(instancePositions.xy);
+	vec2 source = project_position(instancePositions.xy);
   vec2 target = project_position(instancePositions.zw);
 
-  // Create arc in segements
-  float segmentIndex = positions.x;
-  float segmentRatio = getSegmentRatio(segmentIndex);
-  // if it's the first point, use next - current as direction
-  // otherwise use current - prev
-  float indexDir = mix(-1.0, 1.0, step(segmentIndex, 0.0));
-  float nextSegmentRatio = getSegmentRatio(segmentIndex + indexDir);
+  float segmentRatioIndex = floor(positions.x);
+  float segmentRatio = getSegmentRatio(segmentRatioIndex);
 
-  vec3 currPos = getPos(source, target, segmentRatio);
-  vec3 nextPos = getPos(source, target, nextSegmentRatio);
-
+	vec3 currPos = getPos(source, target, segmentRatio + 0.01);
+	vec3 nextPos = getPos(source, target, segmentRatio - 0.01);
   vec4 curr = project_to_clipspace(vec4(currPos, 1.0));
-  vec4 next = project_to_clipspace(vec4(nextPos, 1.0));
+	vec4 next = project_to_clipspace(vec4(nextPos, 1.0));
 
-  // extrude
-  vec2 offset = getExtrusionOffset((next.xy - curr.xy) * indexDir, positions.y);
-  gl_Position = curr + vec4(offset, 0.0, 0.0);
+	mat4 translationMatrix = mat4(
+		vec4(1.0, 0, 0, 0),
+		vec4(0, 1.0, 0, 0),
+		vec4(0, 0, 1.0, 0),
+		curr
+	);
 
-  vec4 color = mix(instanceSourceColors, instanceTargetColors, segmentRatio) / 255.;
-  vColor = vec4(color.rgb, color.a * opacity);
+  vec3 lookat = next.xyz;
+  vec3 pos = curr.xyz;
+  vec3 upVector = vec3(0.0, 1.0, 0.0);
 
+  vec3 orientZ = normalize(next.xyz - curr.xyz);
+  vec3 orientX = normalize(cross(upVector, orientZ));
+  vec3 orientY = cross(orientZ, orientX);
+
+  mat4 orientationMatrix = mat4(
+    vec4(orientX, 1.0),
+    vec4(orientY, 1.0),
+    vec4(orientZ, 1.0),
+    vec4(0, 0, 0, 1.0)
+  );
+
+	gl_Position = translationMatrix * orientationMatrix * uSMatrix * vec4(positions, 1.0);
+  vColor = colors;
+  vTextureCoord = texCoords;
 }
 `;

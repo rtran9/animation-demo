@@ -1,83 +1,163 @@
-import DeckGL, {ArcLayer} from 'deck.gl';
-import {GL, AnimationLoop, loadTextures, Cube, setParameters} from 'luma.gl';
+import {COORDINATE_SYSTEM, Layer} from 'deck.gl';
+import {Geometry, GL, loadTextures, Model} from 'luma.gl';
 import {Matrix4} from 'math.gl';
 
-import vertexShader from './trips-arc-layer-vertex.glsl';
-import fragmentShader from './trips-arc-layer-fragment.glsl';
+import vs from './trips-arc-layer-vertex.glsl';
+import fs from './trips-arc-layer-fragment.glsl';
 
-// https://github.com/uber/luma.gl/blob/5.3-release/examples/lessons/05/app.js
-const VERTEX_SHADER = `\
-attribute vec3 positions;
-attribute vec2 texCoords;
-uniform mat4 uMVMatrix;
-uniform mat4 uPMatrix;
-varying vec2 vTextureCoord;
+const defaultProps = {
+  getSourcePosition: x => x.sourcePosition,
+  getTargetPosition: x => x.targetPosition
+};
 
-void main(void) {
-  gl_Position = uPMatrix * uMVMatrix * vec4(positions, 1.0);
-  vTextureCoord = texCoords;
-}
-`;
+export default class TripsArcLayer extends Layer {
+  constructor(props) {
+    let overrideProps = null;
+    if (Number.isFinite(props.strokeWidth)) {
+      overrideProps = {
+        getStrokeWidth: props.strokeWidth
+      };
+    }
+    super(props, overrideProps);
+  }
 
-const FRAGMENT_SHADER = `\
-#ifdef GL_ES
-precision highp float;
-#endif
+  getShaders() {
+    return {
+			vs,
+			fs,
+			modules: ['picking']
+		};
+  }
 
-uniform sampler2D uSampler;
-varying vec2 vTextureCoord;
+  initializeState() {
+    const attributeManager = this.getAttributeManager();
+    const {gl} = this.context;
 
-void main(void) {
-  gl_FragColor = texture2D(uSampler, vTextureCoord);
-}
-`;
-
-export default class TripsArcLayer extends ArcLayer {
-	initializeState() {
-    super.initializeState(...arguments);
-
-    this.setState({
-      model: this.getModel(gl)
+    /* eslint-disable max-len */
+    attributeManager.addInstanced({
+      instancePositions: {
+        size: 4,
+        transition: true,
+        accessor: ['getSourcePosition', 'getTargetPosition'],
+        update: this.calculateInstancePositions
+      }
     });
+
+		this.setState({
+			model: this._getModel(gl)
+		});
+
+		loadTextures(gl, {
+			// https://www.iconfinder.com/icons/2714753/2107_auto_automobile_avtovaz_car_lada_vehicle_icon
+			urls: ['car.svg']
+		}).then(textures => {
+			this.state.model.setUniforms({
+				uSampler: textures[0]
+			})
+		});
   }
 
-	updateState({props}) {
-		const {gl} = this.context;
-
-    super.updateState(...arguments);
-
-    // load the texture
-    // idea is to import any image, e.g. bike, airplane
-		// loadTextures(gl, {
-		// 	urls: ['bike-3-256.gif']
-		// }).then(textures => {
-		// 	this.state.model.setUniforms({
-		// 		currentTime: props.currentTime,
-		// 		uSampler: textures[0]
-		// 	})
-		// })
+  updateAttribute({props, oldProps, changeFlags}) {
+    const attributeManager = this.getAttributeManager();
+    attributeManager.invalidateAll();
   }
 
-	getShaders() {
-		return {
-      ...super.getShaders(),
-			vs: vertexShader,
-      fs: fragmentShader
-    };
+  updateState({props, oldProps, changeFlags}) {
+		super.updateState({props, oldProps, changeFlags});
+
+    this.state.model.setUniforms({
+			currentTime: props.currentTime
+		});
+
+    this.updateAttribute({props, oldProps, changeFlags});
   }
 
-  getModel(gl) {
-   const shaders = assembleShaders(gl, this.getShaders());
+  _getModel(gl) {
+    const NUM_SEGMENTS = 2;
 
-   return new Model({
-     gl,
-     id: this.props.id,
-     vs: shaders.vs,
-     fs: shaders.fs,
-     geometry: new CubeGeometry(),
-     isInstanced: true
-   });
- }
+    let positions = [];
+    let texCoords = [];
+    let indices = [];
+
+    for (let i = 0; i < NUM_SEGMENTS; i++) {
+      positions = positions.concat([
+        i + 0.1, -1, -1,
+        i + 0.1, 1, -1,
+        i + 0.1, 1, 1,
+        i + 0.1, -1, 1,
+
+        i + 0.9, -1, -1,
+        i + 0.9, 1, -1,
+        i + 0.9, 1, 1,
+        i + 0.9, -1, 1,
+      ]);
+    }
+
+    for (let i = 0; i < 2*NUM_SEGMENTS; i++) {
+      texCoords = texCoords.concat([
+        1.0, 0.0,
+        1.0, 1.0,
+        0.0, 1.0,
+        0.0, 0.0,
+      ]);
+    }
+
+    for (let i = 0; i < NUM_SEGMENTS; i++) {
+      indices = indices.concat([
+        i + 0, i + 1, i + 2,
+        i + 0, i + 2, i + 3,
+        i + 4, i + 5, i + 6,
+        i + 4, i + 6, i + 7,
+      ]);
+    }
+
+		const model = new Model(
+      gl,
+      Object.assign({}, this.getShaders(), {
+        id: this.props.id,
+        geometry: new Geometry({
+          drawMode: GL.TRIANGLES,
+					attributes: {
+						positions: new Float32Array(positions),
+						texCoords: new Float32Array(texCoords),
+						indices: new Uint16Array(indices)
+          }
+      	}),
+      	isInstanced: true,
+      	shaderCache: this.context.shaderCache
+  		})
+		);
+
+    const scaleFactor = 0.05;
+    const scaler = new Matrix4().scale([0.001, scaleFactor, scaleFactor]);
+
+    model.setUniforms({
+      uSMatrix: scaler
+    });
+
+    return model;
+  }
+
+  calculateInstancePositions(attribute) {
+    const {data, getSourcePosition, getTargetPosition} = this.props;
+    const {value, size} = attribute;
+
+    let i = 0;
+    for (let j = 0; j < data.length; j++) {
+			const object = data[j];
+
+      const sourcePosition = getSourcePosition(object);
+      const targetPosition = getTargetPosition(object);
+
+			value[i + 0] = sourcePosition[0];
+      value[i + 1] = sourcePosition[1];
+      value[i + 2] = targetPosition[0];
+      value[i + 3] = targetPosition[1];
+
+      i += size;
+    }
+  }
 }
 
 TripsArcLayer.layerName = 'TripsArcLayer';
+TripsArcLayer.defaultProps = defaultProps;
