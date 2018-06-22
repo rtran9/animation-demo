@@ -45,8 +45,8 @@ void main(void) {
 
 	float vAlpha = currentTime / 10.0;
 
-	vec3 currPos = getPos(source, target, vAlpha + 0.01);
-	vec3 nextPos = getPos(source, target, vAlpha - 0.01);
+	vec3 currPos = getPos(source, target, vAlpha);
+	vec3 nextPos = getPos(source, target, vAlpha + 0.01);
   vec4 curr = project_to_clipspace(vec4(currPos, 1.0));
 	vec4 next = project_to_clipspace(vec4(nextPos, 1.0));
 

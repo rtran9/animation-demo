@@ -93,17 +93,15 @@ export default class TextureArcLayer extends Layer {
 						]),
 
 						texCoords: new Float32Array([
-							// Right face
-							1.0, 0.0,
+              0.0, 0.0,
+              0.0, 1.0,
 							1.0, 1.0,
-							0.0, 1.0,
-							0.0, 0.0,
+              1.0, 0.0,
 
-							// Left face
-							1.0, 0.0,
+              0.0, 0.0,
+              0.0, 1.0,
 							1.0, 1.0,
-							0.0, 1.0,
-							0.0, 0.0,
+              1.0, 0.0,
 						]),
 
 						indices: new Uint16Array([
