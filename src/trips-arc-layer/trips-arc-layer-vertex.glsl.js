@@ -4,16 +4,12 @@ export default `\
 attribute vec4 colors;
 attribute vec3 positions;
 attribute vec2 texCoords;
-attribute vec4 instanceSourceColors;
-attribute vec4 instanceTargetColors;
 attribute vec4 instancePositions;
-attribute vec3 instancePickingColors;
-attribute float instanceWidths;
+attribute float instanceNumSegments;
 
 uniform mat4 uSMatrix;
 uniform float currentTime;
 
-varying vec4 vColor;
 varying vec2 vTextureCoord;
 
 float paraboloid(vec2 source, vec2 target, float ratio) {
@@ -23,11 +19,12 @@ float paraboloid(vec2 source, vec2 target, float ratio) {
 
   float dSourceCenter = distance(source, center);
   float dXCenter = distance(x, center);
+
   return (dSourceCenter + dXCenter) * (dSourceCenter - dXCenter);
 }
 
 float getSegmentRatio(float index) {
-  return smoothstep(0.1, 0.9, index / 4.0);
+  return smoothstep(0.05, 0.95, index / 6.0);
 }
 
 vec3 getPos(vec2 source, vec2 target, float segmentRatio) {
@@ -43,11 +40,16 @@ void main(void) {
 	vec2 source = project_position(instancePositions.xy);
   vec2 target = project_position(instancePositions.zw);
 
-  float segmentRatioIndex = floor(positions.x);
-  float segmentRatio = getSegmentRatio(segmentRatioIndex);
-
-	vec3 currPos = getPos(source, target, segmentRatio + 0.01);
-	vec3 nextPos = getPos(source, target, segmentRatio - 0.01);
+  float segmentIndex = positions.x;
+  // if odd, subtract 1
+  if (mod(positions.x, 2.0) != 0.0) {
+    segmentIndex = segmentIndex - 1.0;
+  }
+  float segmentRatio = getSegmentRatio(segmentIndex);
+  float vAlpha = mod(segmentIndex/2.0 + currentTime, 6.0) /6.0;
+  // vAlpha = 0.5;
+	vec3 currPos = getPos(source, target, vAlpha - 0.01);
+	vec3 nextPos = getPos(source, target, vAlpha + 0.01);
   vec4 curr = project_to_clipspace(vec4(currPos, 1.0));
 	vec4 next = project_to_clipspace(vec4(nextPos, 1.0));
 
@@ -60,7 +62,7 @@ void main(void) {
 
   vec3 lookat = next.xyz;
   vec3 pos = curr.xyz;
-  vec3 upVector = vec3(0.0, 1.0, 0.0);
+  vec3 upVector = vec3(0, 1.0, 0);
 
   vec3 orientZ = normalize(next.xyz - curr.xyz);
   vec3 orientX = normalize(cross(upVector, orientZ));
@@ -73,8 +75,15 @@ void main(void) {
     vec4(0, 0, 0, 1.0)
   );
 
-	gl_Position = translationMatrix * orientationMatrix * uSMatrix * vec4(positions, 1.0);
-  vColor = colors;
+  // center, so faces are around arc
+  mat4 offsetMatrix = mat4(
+		vec4(1.0, 0, 0, 0),
+		vec4(0, 1.0, 0, 0),
+		vec4(0, 0, 1.0, 0),
+		vec4(-0.5, 0, 0, 1.0)
+	);
+
+	gl_Position = translationMatrix * orientationMatrix * uSMatrix * offsetMatrix * vec4(positions, 1.0);
   vTextureCoord = texCoords;
 }
 `;

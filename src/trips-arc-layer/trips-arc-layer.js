@@ -12,13 +12,7 @@ const defaultProps = {
 
 export default class TripsArcLayer extends Layer {
   constructor(props) {
-    let overrideProps = null;
-    if (Number.isFinite(props.strokeWidth)) {
-      overrideProps = {
-        getStrokeWidth: props.strokeWidth
-      };
-    }
-    super(props, overrideProps);
+    super(props);
   }
 
   getShaders() {
@@ -33,7 +27,6 @@ export default class TripsArcLayer extends Layer {
     const attributeManager = this.getAttributeManager();
     const {gl} = this.context;
 
-    /* eslint-disable max-len */
     attributeManager.addInstanced({
       instancePositions: {
         size: 4,
@@ -48,11 +41,10 @@ export default class TripsArcLayer extends Layer {
 		});
 
 		loadTextures(gl, {
-			// https://www.iconfinder.com/icons/2714753/2107_auto_automobile_avtovaz_car_lada_vehicle_icon
-			urls: ['car.svg']
+			urls: [this.props.url]
 		}).then(textures => {
 			this.state.model.setUniforms({
-				uSampler: textures[0]
+				uTexture: textures[0]
 			})
 		});
   }
@@ -73,7 +65,7 @@ export default class TripsArcLayer extends Layer {
   }
 
   _getModel(gl) {
-    const NUM_SEGMENTS = 2;
+    const NUM_SEGMENTS = 1;
 
     let positions = [];
     let texCoords = [];
@@ -81,33 +73,36 @@ export default class TripsArcLayer extends Layer {
 
     for (let i = 0; i < NUM_SEGMENTS; i++) {
       positions = positions.concat([
-        i + 0.1, -1, -1,
-        i + 0.1, 1, -1,
-        i + 0.1, 1, 1,
-        i + 0.1, -1, 1,
+        2*i, -1, -1,
+        2*i, 1, -1,
+        2*i, 1, 1,
+        2*i, -1, 1,
 
-        i + 0.9, -1, -1,
-        i + 0.9, 1, -1,
-        i + 0.9, 1, 1,
-        i + 0.9, -1, 1,
-      ]);
-    }
-
-    for (let i = 0; i < 2*NUM_SEGMENTS; i++) {
-      texCoords = texCoords.concat([
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        0.0, 0.0,
+        2*i + 1.0, -1, -1,
+        2*i + 1.0, 1, -1,
+        2*i + 1.0, 1, 1,
+        2*i + 1.0, -1, 1,
       ]);
     }
 
     for (let i = 0; i < NUM_SEGMENTS; i++) {
+      texCoords = texCoords.concat([
+        0.0, 0.0,
+        0.0, 1.0,
+        1.0, 1.0,
+        1.0, 0.0,
+
+        0.0, 0.0,
+        0.0, 1.0,
+        1.0, 1.0,
+        1.0, 0.0,
+      ]);
+    }
+
+    for (let i = 0; i < 2*NUM_SEGMENTS; i++) {
       indices = indices.concat([
-        i + 0, i + 1, i + 2,
-        i + 0, i + 2, i + 3,
-        i + 4, i + 5, i + 6,
-        i + 4, i + 6, i + 7,
+        4*i + 0, 4*i + 1, 4*i + 2,
+        4*i + 0, 4*i + 2, 4*i + 3,
       ]);
     }
 
@@ -128,11 +123,18 @@ export default class TripsArcLayer extends Layer {
   		})
 		);
 
-    const scaleFactor = 0.05;
-    const scaler = new Matrix4().scale([0.001, scaleFactor, scaleFactor]);
+    const scaleX = 0.005;
+    const scaleY = 0.05;
+    const scaleZ = 0.05;
+
+    const scalerMatrix = new Matrix4().scale([
+      scaleX,
+      scaleY,
+      scaleZ
+    ]);
 
     model.setUniforms({
-      uSMatrix: scaler
+      uSMatrix: scalerMatrix
     });
 
     return model;
